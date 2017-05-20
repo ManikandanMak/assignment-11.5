@@ -1,0 +1,57 @@
+STATIC PARTITION
+
+
+create table if not exists olym1(name string,
+    > age int,                                     
+    > year int,                                    
+    > enddate string,                              
+    > gamedate string,                             
+    > gold int,                                    
+    > silver int,
+    > bronze int,
+    > total int) partitioned by (country string)
+    > row format delimited
+    > fields terminated by ',';
+
+create table if not exists olympics(name string,
+    > age int,                     
+    > country string,               
+    > year int,                                    
+    > enddate string,                              
+    > gamedate string,                             
+    > gold int,                                    
+    > silver int,
+    > bronze int,
+    > total int) 
+    > row format delimited
+    > fields terminated by ',';
+
+load data local inpath '/home/acadgild/Downloads/olympix_data.csv' into table olympics;
+
+ insert overwrite table olym1   
+    > partition(country='India')  
+    > select name,age,year,cdate,game,gold,silver,bronze,total from olympics where country == 'India';
+
+
+DYNAMIC PARTITION
+
+create table olym2(name string,
+    > age int,
+    > year int,
+    > enddate  string,
+    > game string,
+    > gold int,
+    > silver int,
+    > bronze int,
+    > total int) partitioned by (country string)
+    > row format delimited
+    > fields terminated by ',';
+
+insert overwrite table olym2
+partition(country)
+select name,age,year,enddate,gamedate,gold,silver,bronze,total,country from olympics ;
+
+
+select country,sum(total) from olympics  group by country;
+select country,sum(total) from olympics where game='Athletics' group by country;
+select year,avg(age),country from olym2 where game='Athletics' group by country,year;
